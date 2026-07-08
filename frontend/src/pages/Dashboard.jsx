@@ -37,16 +37,27 @@ const itemVariants = {
 };
 
 function Dashboard() {
-    const [stats, setStats] = useState(null);
-    const [reports, setReports] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('cached_dashboard_stats');
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [reports, setReports] = useState(() => {
+        const cached = localStorage.getItem('cached_dashboard_reports');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(() => {
+        const cachedStats = localStorage.getItem('cached_dashboard_stats');
+        return !cachedStats;
+    });
     const navigate = useNavigate();
 
     useEffect(() => {
-        Promise.all([API.get('/reports/stats'), API.get('/reports')])
+        Promise.all([API.get('/reports/stats'), API.get('/reports?summary=true')])
             .then(([statsRes, reportsRes]) => {
                 setStats(statsRes.data);
                 setReports(reportsRes.data);
+                localStorage.setItem('cached_dashboard_stats', JSON.stringify(statsRes.data));
+                localStorage.setItem('cached_dashboard_reports', JSON.stringify(reportsRes.data));
             })
             .catch((err) => console.error('Dashboard data load failed:', err))
             .finally(() => setLoading(false));

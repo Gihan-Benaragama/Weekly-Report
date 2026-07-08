@@ -19,6 +19,25 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        // Strong password verification
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters long.');
+            return;
+        }
+        if (!/(?=.*[a-z])/.test(password)) {
+            setError('Password must contain at least one lowercase letter.');
+            return;
+        }
+        if (!/(?=.*[A-Z])/.test(password)) {
+            setError('Password must contain at least one uppercase letter.');
+            return;
+        }
+        if (!/(?=.*\d)/.test(password)) {
+            setError('Password must contain at least one number.');
+            return;
+        }
+
         setLoading(true);
         try {
             const user = await register(name, email, password, role);

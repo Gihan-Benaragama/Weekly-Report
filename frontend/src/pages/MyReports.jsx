@@ -12,13 +12,19 @@ const statusStyles = {
 };
 
 function MyReports() {
-    const [reports, setReports] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [reports, setReports] = useState(() => {
+        const cached = localStorage.getItem('cached_my_reports');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(() => !localStorage.getItem('cached_my_reports'));
     const navigate = useNavigate();
 
     const fetchReports = () => {
         API.get('/reports/my-reports')
-            .then((res) => setReports(res.data))
+            .then((res) => {
+                setReports(res.data);
+                localStorage.setItem('cached_my_reports', JSON.stringify(res.data));
+            })
             .catch((err) => console.error(err))
             .finally(() => setLoading(false));
     };
@@ -31,7 +37,11 @@ function MyReports() {
         if (!confirm('Delete this report? This cannot be undone.')) return;
         try {
             await API.delete(`/reports/${id}`);
-            setReports((prev) => prev.filter((r) => r._id !== id));
+            setReports((prev) => {
+                const updated = prev.filter((r) => r._id !== id);
+                localStorage.setItem('cached_my_reports', JSON.stringify(updated));
+                return updated;
+            });
             toast.success('Report deleted');
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to delete report');

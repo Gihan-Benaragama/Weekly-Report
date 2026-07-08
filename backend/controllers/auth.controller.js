@@ -4,7 +4,7 @@ import User from '../models/User.js';
 
 const generateToken = (user) => {
     return jwt.sign(
-        { id: user._id, role: user.role },
+        { id: user._id, role: user.role, name: user.name, email: user.email },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
     );
@@ -17,6 +17,14 @@ export const registerUser = async (req, res) => {
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User with this email already exists' });
+        }
+
+        // Strong password verification
+        if (!password || password.length < 8) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
+        }
+        if (!/(?=.*[a-z])/.test(password) || !/(?=.*[A-Z])/.test(password) || !/(?=.*\d)/.test(password)) {
+            return res.status(400).json({ message: 'Password must contain uppercase, lowercase, and numeric characters.' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -124,5 +132,14 @@ export const googleLogin = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: 'Google login failed', error: error.message });
+    }
+};
+
+export const getMembers = async (req, res) => {
+    try {
+        const members = await User.find({ role: 'member' }).select('name email');
+        res.status(200).json(members);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

@@ -20,5 +20,11 @@ const reportSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Optimize database querying and filtering speeds
+reportSchema.index({ user: 1 });
+reportSchema.index({ project: 1 });
+reportSchema.index({ status: 1 });
+reportSchema.index({ weekStart: -1 });
+
 const Report = mongoose.model('Report', reportSchema);
 export default Report;

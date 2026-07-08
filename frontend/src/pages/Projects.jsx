@@ -16,20 +16,48 @@ const cardVariants = {
 
 function Projects() {
     const [projects, setProjects] = useState([]);
+    const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [form, setForm] = useState({ name: '', description: '' });
+    const [form, setForm] = useState({ name: '', description: '', assignedMembers: [] });
     const [error, setError] = useState('');
 
     const fetchProjects = () => {
-        API.get('/projects').then((res) => setProjects(res.data)).catch(console.error).finally(() => setLoading(false));
+        API.get('/projects')
+            .then((res) => setProjects(res.data))
+            .catch(console.error)
+            .finally(() => setLoading(false));
     };
 
-    useEffect(() => { fetchProjects(); }, []);
+    const fetchMembers = () => {
+        API.get('/auth/members')
+            .then((res) => setMembers(res.data))
+            .catch(console.error);
+    };
 
-    const openNewForm = () => { setForm({ name: '', description: '' }); setEditingId(null); setShowForm(true); setError(''); };
-    const openEditForm = (p) => { setForm({ name: p.name, description: p.description || '' }); setEditingId(p._id); setShowForm(true); setError(''); };
+    useEffect(() => { 
+        fetchProjects(); 
+        fetchMembers();
+    }, []);
+
+    const openNewForm = () => { 
+        setForm({ name: '', description: '', assignedMembers: [] }); 
+        setEditingId(null); 
+        setShowForm(true); 
+        setError(''); 
+    };
+
+    const openEditForm = (p) => { 
+        setForm({ 
+            name: p.name, 
+            description: p.description || '', 
+            assignedMembers: p.assignedMembers ? p.assignedMembers.map((m) => m._id || m) : [] 
+        }); 
+        setEditingId(p._id); 
+        setShowForm(true); 
+        setError(''); 
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -95,8 +123,8 @@ function Projects() {
                         <motion.div
                             key={project._id}
                             variants={cardVariants}
-                            whileHover={{ y: -3 }}
-                            className="glass-card rounded-3xl p-6 relative flex flex-col justify-between transition group"
+                            whileHover={{ y: -3, scale: 1.01, boxShadow: '0 20px 40px -15px rgba(0,0,0,0.4)', borderColor: 'rgba(255, 255, 255, 0.12)' }}
+                            className="glass-card rounded-3xl p-6 relative flex flex-col justify-between group"
                         >
                             <div className="flex items-start gap-4">
                                 <div className="w-11 h-11 rounded-2xl bg-brand-500/20 text-brand-400 flex items-center justify-center flex-shrink-0 border border-brand-500/30">
@@ -107,6 +135,15 @@ function Projects() {
                                     <p className="text-xs text-slate-400 font-medium leading-relaxed line-clamp-2">
                                         {project.description || 'No description provided.'}
                                     </p>
+                                    {project.assignedMembers && project.assignedMembers.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 pt-2.5">
+                                            {project.assignedMembers.map((m) => (
+                                                <span key={m._id} className="text-[9px] font-bold px-2 py-0.5 bg-brand-500/10 text-brand-400 border border-brand-500/20 rounded-md">
+                                                    {m.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -177,6 +214,34 @@ function Projects() {
                                         className="w-full px-4 py-3 glass-input rounded-xl outline-none text-slate-200 text-sm"
                                         placeholder="Add goals, details, or scope descriptions..."
                                     />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Assign Team Members (Optional)</label>
+                                    <div className="max-h-36 overflow-y-auto space-y-2 border border-white/5 bg-slate-950/40 p-3 rounded-xl scrollbar-thin">
+                                        {members.length === 0 ? (
+                                            <p className="text-xs text-slate-500 font-medium">No team members available</p>
+                                        ) : (
+                                            members.map((u) => {
+                                                const isAssigned = form.assignedMembers.includes(u._id);
+                                                return (
+                                                    <label key={u._id} className="flex items-center gap-2.5 text-xs text-slate-300 font-medium cursor-pointer hover:text-slate-100 transition">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isAssigned}
+                                                            onChange={() => {
+                                                                const updated = isAssigned
+                                                                    ? form.assignedMembers.filter((id) => id !== u._id)
+                                                                    : [...form.assignedMembers, u._id];
+                                                                setForm({ ...form, assignedMembers: updated });
+                                                            }}
+                                                            className="rounded border-white/10 text-brand-600 focus:ring-brand-500 bg-slate-900 w-3.5 h-3.5"
+                                                        />
+                                                        <span>{u.name} ({u.email})</span>
+                                                    </label>
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/5 mt-6">
                                     <button type="button" onClick={() => setShowForm(false)} className="glass-btn glass-btn-ghost glass-btn-sm">

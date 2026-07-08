@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, LayoutDashboard, FileText, FolderKanban, Bot, Send, X, MessageSquare, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import API from '../api/axios';
+import NotificationBell from '../components/NotificationBell';
 
 function AppLayout() {
     const { user, logout } = useAuth();
@@ -48,7 +49,7 @@ function AppLayout() {
         }`;
 
     return (
-        <div className="min-h-screen bg-[#090d16] flex relative overflow-hidden">
+        <div className="h-screen bg-[#090d16] flex relative overflow-hidden">
             <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-brand-500/10 blur-[120px] animate-float-slow pointer-events-none z-0" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-teal-500/10 blur-[140px] animate-float-delay pointer-events-none z-0" />
 
@@ -58,14 +59,17 @@ function AppLayout() {
                     <img src={logo} alt="WeeklyFlow Logo" className="w-8 h-8 rounded-lg object-contain shadow-lg" />
                     <span className="font-bold text-base text-slate-100 tracking-tight">WeeklyFlow</span>
                 </div>
-                <button
-                    onClick={() => setMobileMenuOpen(true)}
-                    className="glass-btn glass-btn-ghost glass-btn-icon"
-                >
-                    <svg className="w-6 h-6 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
+                <div className="flex items-center gap-2">
+                    <NotificationBell />
+                    <button
+                        onClick={() => setMobileMenuOpen(true)}
+                        className="glass-btn glass-btn-ghost glass-btn-icon"
+                    >
+                        <svg className="w-6 h-6 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {/* Backdrop for Mobile Sidebar Menu */}
@@ -83,14 +87,19 @@ function AppLayout() {
                         <img src={logo} alt="WeeklyFlow Logo" className="w-9 h-9 rounded-xl object-contain shadow-lg" />
                         <span className="font-bold text-lg text-slate-100 tracking-tight">WeeklyFlow</span>
                     </div>
-                    {/* Close button for mobile */}
-                    <div className="md:hidden">
-                        <button
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="glass-btn glass-btn-ghost glass-btn-icon"
-                        >
-                            <X size={18} />
-                        </button>
+                    <div className="flex items-center gap-2">
+                        <div className="hidden md:block">
+                            <NotificationBell />
+                        </div>
+                        {/* Close button for mobile */}
+                        <div className="md:hidden">
+                            <button
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="glass-btn glass-btn-ghost glass-btn-icon"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -130,7 +139,7 @@ function AppLayout() {
             </aside>
 
             {/* Main content */}
-            <main className="flex-1 overflow-y-auto z-10 relative pt-16 md:pt-0">
+            <main className="flex-1 h-full overflow-y-auto z-10 relative pt-16 md:pt-0">
                 <motion.div
                     key={location.pathname}
                     initial={{ opacity: 0, y: 10 }}
@@ -215,9 +224,10 @@ function AppLayout() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setChatOpen(!chatOpen)}
-                        className="glass-btn glass-btn-primary w-14 h-14 rounded-full shadow-xl shadow-brand-500/25"
+                        className="flex items-center justify-center w-14 h-14 rounded-full shadow-2xl shadow-brand-500/35 text-white bg-brand-500 hover:bg-brand-600 border border-brand-400/30 transition-all duration-200 cursor-pointer z-50"
+                        aria-label="AI Assistant"
                     >
-                        {chatOpen ? <X size={22} /> : <MessageSquare size={22} />}
+                        {chatOpen ? <X size={22} className="opacity-100" /> : <MessageSquare size={22} className="opacity-100" />}
                     </motion.button>
                 </div>
             )}
